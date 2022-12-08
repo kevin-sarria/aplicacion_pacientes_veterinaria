@@ -12,7 +12,7 @@ dotenv.config();
 
 conectarDB();
 
-const dominiosPermitios = ["http://127.0.0.1:5173"];
+const dominiosPermitios = [process.env.FRONTEND_URL];
 
 const corsOptions = {
     origin: function(origin, callback) {
@@ -32,6 +32,8 @@ app.listen(PORT, () => {
 })
 
 app.use(cors(corsOptions));
+// Si no le pongo opciones dentro de cors, no dara error pero admite todas las conexiones
+// app.use(cors());
 
 app.use( '/api/veterinarios', veterinarioRoutes );
 app.use( '/api/pacientes', pacienteRoutes );
