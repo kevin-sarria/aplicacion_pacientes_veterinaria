@@ -3,10 +3,9 @@ import clienteAxios from '../config/axios';
 
 
 const AuthContext = createContext();
-
-
 const AuthProvider = ({children}) => {
 
+    const [ cargando, setCargando ] = useState(true);
     const [ auth, setAuth ] = useState({});
 
     useEffect( () => {
@@ -14,7 +13,10 @@ const AuthProvider = ({children}) => {
         const autenticarUSuario = async() => {
             const token = localStorage.getItem('apv_token');
 
-            if( !token ) return;
+            if( !token ) {
+                setCargando(false);
+                return;
+            }
 
             const config = {
                 headers: {
@@ -34,15 +36,99 @@ const AuthProvider = ({children}) => {
                 setAuth({});
             }
 
+            setCargando(false);
+
         }
 
         autenticarUSuario();
 
     }, [] );
 
+    const cerrarSesion = () => {
+        localStorage.removeItem('apv_token');
+        setAuth({});
+    }
+
+    const actualizarPerfil = async(datos) => {
+
+        const token = localStorage.getItem('apv_token');
+
+        if( !token ) {
+            setCargando(false);
+            return;
+        }
+
+        const config = {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            }
+        };
+
+        try {
+            
+            const url = `/veterinarios/perfil/${datos._id}`;
+            const { data } = await clienteAxios.put(url, datos, config);
+
+            return {
+                msg: 'Guardado correctamente'
+            }
+
+        } catch (error) {
+            return {
+                msg: error.response.data.msg,
+                error: true
+            }
+        }
+
+    }
+
+    const guardarPassword = async(datos) => {
+        
+        const token = localStorage.getItem('apv_token');
+
+        if( !token ) {
+            setCargando(false);
+            return;
+        }
+
+        const config = {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            }
+        };
+
+        try {
+            
+            const url = `/veterinarios/actualizar-password`;
+
+            const { data } = await clienteAxios.put(url, datos, config);
+
+            return {
+                msg: data.msg
+            }
+
+        } catch (error) {
+            return {
+                msg: error.response.data.msg,
+                error: true
+            }
+        }
+
+    }
+
+
     return (
         <AuthContext.Provider
-            value={{auth, setAuth}}
+            value={{
+                auth,
+                setAuth,
+                cargando,
+                cerrarSesion,
+                actualizarPerfil,
+                guardarPassword
+            }}
         >
             {children}
         </AuthContext.Provider>
